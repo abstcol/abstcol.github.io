@@ -1,0 +1,197 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>计算机视觉算法 DINOV2 论文解读 | abstcol's blogs</title><meta name="author" content="abstcol"><meta name="copyright" content="abstcol"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言看完了DINO这篇工作，整体还是很有收获的，也是很期待DINOV2会给我带来什么惊喜。但是真的看完整篇论文才会发现其实给我带来的信息增益不是特别的多。跟我学llm时候的情况很像，想要以llama系列的技术报告为支点熟悉llm的体系框架，但是后面几个版本的技术报告内容中的部署细节很多，很难学到目前用的上的只是。DINOV2也花了一些的篇幅在部署细节上，对于这一部分我仍是味同嚼蜡。因为这">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机视觉算法 DINOV2 论文解读">
+<meta property="og:url" content="http://example.com/2025/04/20/dinov2/index.html">
+<meta property="og:site_name" content="abstcol&#39;s blogs">
+<meta property="og:description" content="前言看完了DINO这篇工作，整体还是很有收获的，也是很期待DINOV2会给我带来什么惊喜。但是真的看完整篇论文才会发现其实给我带来的信息增益不是特别的多。跟我学llm时候的情况很像，想要以llama系列的技术报告为支点熟悉llm的体系框架，但是后面几个版本的技术报告内容中的部署细节很多，很难学到目前用的上的只是。DINOV2也花了一些的篇幅在部署细节上，对于这一部分我仍是味同嚼蜡。因为这">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/avatar.png">
+<meta property="article:published_time" content="2025-04-20T09:49:11.000Z">
+<meta property="article:modified_time" content="2025-05-03T10:26:41.593Z">
+<meta property="article:author" content="abstcol">
+<meta property="article:tag" content="deeplearning">
+<meta property="article:tag" content="theory">
+<meta property="article:tag" content="cv">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "计算机视觉算法 DINOV2 论文解读",
+  "url": "http://example.com/2025/04/20/dinov2/",
+  "image": "http://example.com/images/avatar.png",
+  "datePublished": "2025-04-20T09:49:11.000Z",
+  "dateModified": "2025-05-03T10:26:41.593Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "abstcol",
+      "url": "http://example.com/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2025/04/20/dinov2/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '计算机视觉算法 DINOV2 论文解读',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">10</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/top_footer.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">abstcol's blogs</span></a><a class="nav-page-title" href="/"><span class="site-name">计算机视觉算法 DINOV2 论文解读</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">计算机视觉算法 DINOV2 论文解读</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-04-20T09:49:11.000Z" title="发表于 2025-04-20 17:49:11">2025-04-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-05-03T10:26:41.593Z" title="更新于 2025-05-03 18:26:41">2025-05-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/tech/">tech</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>7分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><meta name="referrer" content="no-referrer"/>
+
+
+
+<hr>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>看完了DINO这篇工作，整体还是很有收获的，也是很期待DINOV2会给我带来什么惊喜。<br>但是真的看完整篇论文才会发现其实给我带来的信息增益不是特别的多。<br>跟我学llm时候的情况很像，想要以llama系列的技术报告为支点熟悉llm的体系框架，但是后面几个版本的技术报告内容中的部署细节很多，很难学到目前用的上的只是。<br>DINOV2也花了一些的篇幅在部署细节上，对于这一部分我仍是味同嚼蜡。因为这一部分内容很难通过 理论学习+跟着代码执行过一遍流程 学习方法吸收。<br>但是DINOV2和一代一样做了很多下游任务实验证明方法训练模型所抽取的特征是很好的特征，这一部分我很感兴趣，填补了我对这些下游任务实现的空白（是我见识少的缘故）。<br>（同样，我对作者提及的其他对比算法了解十分有限，所以表述难免错漏。如有发现，欢迎在评论区指出）</p>
+<hr>
+<h1 id="DINOV2"><a href="#DINOV2" class="headerlink" title="DINOV2"></a>DINOV2</h1><h2 id="训练数据"><a href="#训练数据" class="headerlink" title="训练数据"></a>训练数据</h2><p>论文在数据处理上花了挺多篇幅，但是我觉得结论不太能说服我。</p>
+<p>DINOV2的数据处理分为三部分：数据获取、数据去重、数据检索。</p>
+<h3 id="数据获取"><a href="#数据获取" class="headerlink" title="数据获取"></a>数据获取</h3><p>图像数据源于网络爬取，将爬取内容中的img tag对应的url内容下载下来。（去除不安全或域名限制访问的url）<br>然后进行了简单的主成分哈希去重、nsfw过滤、面部模糊。</p>
+<h3 id="数据去重"><a href="#数据去重" class="headerlink" title="数据去重"></a>数据去重</h3><p>数据去重分为两部分。<br>首先对于爬取的图片进行压缩（这里利用已有的embedding层），然后根据图像embedding之间的余弦相似度进行knn，将每个图像embedding的 64个以内&amp;&amp;余弦相似度&gt;0.6 的最近邻保留，据此构造并查集，每个集合保留一个图像。</p>
+<p>然后将与 之后要用到的benchmark 的测试集评估集中的图像嵌入 余弦相似度大于0.45的图像去除。</p>
+<h3 id="数据检索"><a href="#数据检索" class="headerlink" title="数据检索"></a>数据检索</h3><p>根据已有的benchmark 训练集的图像 对经过以上两步处理过的爬取图像进行检索。<br>对于大小不一的训练集操作不一样，但总之就是尽量检索相似的图像。</p>
+<p>经过三个步骤后的图像，还要再加上一些benchmark原有的训练集，就是最终的训练数据了。<br>我给大家看一下作者给出的最终训练数据表。</p>
+<p><img src="https://i-blog.csdnimg.cn/img_convert/ad66eacb49ea06f8ebb700336abc2c0b.png"></p>
+<p>这个训练数据在消融实验部分根据作者的对比表现不错。</p>
+<p><img src="https://i-blog.csdnimg.cn/img_convert/7390f3c9905ddb17faca404ce4e38cbb.png"></p>
+<p>但是这里我觉得是有问题的。就拿第一行举例，inet-22k训练出来的模型在inet-1k中表现更好，你说是因为它包括了inet-1k的训练集，所以把inet-1k的训练集去掉后，lvd-142（作者提出训练集）的表现就更好了。<br>但是，你lvd-142中包含有根据inet-1k采样过的数据，数据分布可以说有一部分和inet-1k很像了，这种对比不公平。<br>再说和uncurated data的对比，也是有点小问题的。作者这里想要证明的是精炼的数据对于模型的表现有提升，但是ade-20k、oxford-m都是数据检索过程中用的数据集，你根据它们的训练集进行精炼，在他们测试集的表现比精炼前好，这不是理所当然吗？至于uncurated data最后三个测试集的结果对比，确实可以看出lvd-142m比精炼前的训练效果更好了。<br>但是，我认为最好的对比应该是lvd-142m与测试集对应的训练集进行对比，并且胜出。<br>（后补：ade-20k的黑体标错了，难绷）</p>
+<hr>
+<h2 id="提升性能的训练组件"><a href="#提升性能的训练组件" class="headerlink" title="提升性能的训练组件"></a>提升性能的训练组件</h2><p>作者对于对ibot的改动之处做了消融实验，如下图：<br><img src="https://i-blog.csdnimg.cn/img_convert/b4036e129a09141ca3d0d77379b6cb33.png"><br>但是我觉得这个消融实验真的是很不直观，为什么是递进式的，而不是通通与原版直接比较？<br>递进式的比较，在我看来有之后的组件的功能和之前的组件的功能重合导致作用被低估的风险。</p>
+<p>然后我觉得我们应该去点一些组件。所以变成下面这张图。<br><img src="https://i-blog.csdnimg.cn/img_convert/926c6b1b95714772399b175c7042c54f.png"><br>1.重新复现实验的提升我觉得不能算技术。<br>2.layerscale的提升在我看来属于超参搜索的成果，不算是技术，至于stochastic depth，这里只是提高了效率，不会影响正确率。<br>3、4、5、6、7.超参搜索。<br>8.没有变化不讨论<br>现在只有3个组件需要讨论了，其中untying heads将两个损失头分开 的改动我没把它归为超参搜索，因为它不是只改变数值，但是也没啥好说得，作者自己都说是实验结果更好所以使用。<br>所以接下来就分别讲一讲这两者。</p>
+<h3 id="Koleo正则化"><a href="#Koleo正则化" class="headerlink" title="Koleo正则化"></a>Koleo正则化</h3><p>这是一个很容易理解的正则化，公式如下<br><img src="https://i-blog.csdnimg.cn/img_convert/8a2aaa423642e587248b880074b225d5.png"><br>具体来解释一下，其实就是找到每一个输出特征的最近邻（以L1范数为距离度量方式）并对最近邻间的距离去负对数后求平均。<br>对于这个公式的具体起源这里不做赘述（我也不知道），但是取负对数是很常见的操作，对数具有良好的放大微小差异，缩小大差异的作用。<br>直观上理解这个公式就是让各个特征之间尽量远离，使得特征空间分布更均匀。<br>论文中提到在进行Koleo正则化之前号要进行L2正则化，仔细想想这是很有意义的。<br>因为L2正则化针对的是针对单个特征输出内部不同维度起作用的，它让特征各维度尽量的小。<br>而Koleo针对的是不同特征之间，让他们尽量远离，他让不同特征均匀分布在特征空间。<br>共同作用之后特征均匀分布在一个类球面。</p>
+<h3 id="swiglu-激活函数"><a href="#swiglu-激活函数" class="headerlink" title="swiglu 激活函数"></a>swiglu 激活函数</h3><p>这其实是两种技术的合体，一种是swish激活函数，一种是glu（gated linear units）门控线性单元。<br>swish激活函数其实本来就有“门控”的意味在里面，公式为：$x*sigmois(\beta x)$，其中β可变。<br>而glu则是一种神经网络架构方式，公式为：$activate(W_1x+b_1)\odot(W_2+b_2)$总的来说就是类残差的思想，但是从加变成乘了。</p>
+<hr>
+<h2 id="提升效率的组件"><a href="#提升效率的组件" class="headerlink" title="提升效率的组件"></a>提升效率的组件</h2><p>论文讲了很多的提升训练效率的方法，有很多是很直观的，也有很多是偏硬件优化的，这一部分推荐直接阅读原文。<br>这里就讲两个，一个是stochastic depth，一个是distillation。</p>
+<h3 id="stochastic-depth"><a href="#stochastic-depth" class="headerlink" title="stochastic depth"></a>stochastic depth</h3><p>stochastic depth的思想就是在训练时随机丢弃某个样本的某层网络，还是残差的概念，不同的是因为这里是整层的跳过，如果处理的好的话是可以减少前向时间的。<br>其实DINO就已经运用了stochastic depth，但是当时是直接根据概率将计算后的结果随机mask掉，如代码所示</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x, return_attention=<span class="literal">False</span></span>):</span><br><span class="line">       y, attn = <span class="variable language_">self</span>.attn(<span class="variable language_">self</span>.norm1(x))</span><br><span class="line">       <span class="keyword">if</span> return_attention:</span><br><span class="line">           <span class="keyword">return</span> attn</span><br><span class="line">       x = x + <span class="variable language_">self</span>.drop_path(y)<span class="comment">#运算后进行dropout</span></span><br><span class="line">       x = x + <span class="variable language_">self</span>.drop_path(<span class="variable language_">self</span>.mlp(<span class="variable language_">self</span>.norm2(x)))</span><br><span class="line">       <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+<p>而DINOV2为了加快运行速度在运算前确定某一层需要丢弃的样本，那么这层这个样本就不参与前向了。<br>（代码后补）</p>
+<h3 id="distillation"><a href="#distillation" class="headerlink" title="distillation"></a>distillation</h3><p>整个DINO算法就是自蒸馏框架的，作者在这次训练中尝试了用训练好的ViT-G 架构模型作为教师网络蒸馏出剩余规模的模型。其中有一些小改动，我觉得最值得说的就是作者最后保存的并不是学生网络，而是学生网络训练不同阶段的指数移动平均，这和我们上篇文章的观察是一致的。<br>作者的实验结果显示蒸馏的模型远好于从0开始训练，这符合直觉，但是竟然在特定任务上超过了教师网络，这让我感到惊讶。<br>下面给出一张对比图：<br><img src="https://i-blog.csdnimg.cn/direct/2532c45d2dd4409082999c9d2fddd4e7.png" alt="在这里插入图片描述"></p>
+<hr>
+<h2 id="泛化性"><a href="#泛化性" class="headerlink" title="泛化性"></a>泛化性</h2><p>作者最后做了一个小的实验，那就是在用224的图片预训练完之后用448的图片进行微调，达到了不输完全用448图片训练的效果，这还是很值得一提的。<br><img src="https://i-blog.csdnimg.cn/img_convert/4cbd56c731c1032a68b388a8bf5c05cc.png"></p>
+<hr>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>DINOV2可以说是ibot的完善版本，核心框架的改动其实没有，大都是一些零碎的小改动，但是这些小改动如果能够很好的整合到一起感觉也是很费精力和算力的。<br>DINO系列我觉得最让人有好感的是将全部的训练代码以及模型权重都发了出来，这是很多工作没做到的。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">abstcol</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/04/20/dinov2/">http://example.com/2025/04/20/dinov2/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">abstcol's blogs</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/deeplearning/">deeplearning</a><a class="post-meta__tags" href="/tags/theory/">theory</a><a class="post-meta__tags" href="/tags/cv/">cv</a></div><div class="post-share"><div class="social-share" data-image="/images/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/04/17/dino/" title="计算机视觉算法 DINO 论文解读"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">计算机视觉算法 DINO 论文解读</div></div><div class="info-2"><div class="info-item-1">    前言之前了解过很多的cv模型，但大多都是知道个大概。考虑到如果以后想研究具身的话，cv的前置知识是不可或缺的，于是打算把cv的里程碑式工作过一下。今天看到Emerging Properties in Self-Supervised Vision Transformers(DINO)这篇论文，觉得很有意思，写篇博客总结一下自己的看法。要注意的是，我并没有很多的cv前置知识，所以对于文中的很多技术的理解肯定是有偏差甚至错误的，希望大家宽容看待。  核心观点具体的来说，DINO是一种训练模型的宏观的方法论，对于具体应用的模型框架是没有太多的要求的。DINO的训练目标可以理解为让相似（指语义信息）的图片拥有相似的特征表示，不相似的图片拥有不相似的特征表示。 DINO是 *self-distillation with no labels* 的简称，抓住重点的话就是 self-supervised Learning（自监督）方法 和 distillation（蒸馏）...</div></div></div></a><a class="pagination-related" href="/2025/04/21/dpt/" title="计算机视觉算法 DPT(Vision Transformers for Dense Prediction) 论文解读"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">计算机视觉算法 DPT(Vision Transformers for Dense Prediction) 论文解读</div></div><div class="info-2"><div class="info-item-1">    前言正在撰写depth anything的论文，在跑官方实现的时候发现自己在阅读论文的时候漏掉了一个满关键的组件：dpt。我觉得这个组件值得细致的学习，于是打算先完成dpt的学习以及博客撰写。先前的博客都是读完论文把东西都弄懂后按照自己理解的重要性撰写的，但是那样实在有点耗时。这一次尝试一下严格按照 abstract、intro、conclusion、related...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/04/24/depthanything/" title="计算机视觉算法 depth anything 论文解读"><img class="cover" src="/images/depthanything.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-24</div><div class="info-item-2">计算机视觉算法 depth anything 论文解读</div></div><div class="info-2"><div class="info-item-1">    前言DINOV2有很多的下游应用领域，有很多工作就是将DINOV2当作预训练的backbone使用的，都取得了比较好的效果。去年我在学习遥感图像处理的时候，就用过其中的一个工作：depth anything v2（GitHub），当时只是拿来即用，没有仔细的研究过其中细节。最近正好有时间，就把这部分内容重新整理一下。（同样，对于mde领域我没有太多了解，难免有错漏之处） depth anything所用的网络架构没有什么创新，还是dpt那一套（参考我上一篇博客：计算机视觉算法 DPT(Vision Transformers for Dense Prediction)...</div></div></div></a><a class="pagination-related" href="/2025/04/24/depthanythingv2/" title="计算机视觉算法 depth anything v2 论文解读"><img class="cover" src="/images/depthanything.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-24</div><div class="info-item-2">计算机视觉算法 depth anything v2 论文解读</div></div><div class="info-2"><div class="info-item-1">   前言总算学到 depth anything v2了。去年在遥感领域科研（并非科研）的时候尝试的方向就是结合深度图进行变化检测。因为只进行了简单的模型拼接效果很差，可以说是只带来了副作用。现在想来当时的具体操作上的问题暂且不谈，最大的问题是发生在宏观观念上面的。 我的目的是解决变化检测中 建筑物相关的检测正确率，假设是模型无法区别建筑物和其他后景、植物。解决方法是融合深度图作为监督增加模型对于建筑的语义理解。 开始工作前我以mde rs cd 为关键词在wos上检索了一下有没有相关工作。但是今年开学时发现mde在遥感领域有它自己的名词，而事实是深度图帮助变化检测的工作已经存在了。 对一个领域没有广泛而深入的研究之前不应该开始自己的研究。 扯得有点远了，还是说回depth anything v2吧。这篇工作的模型框架相较于depth...</div></div></div></a><a class="pagination-related" href="/2025/04/17/dino/" title="计算机视觉算法 DINO 论文解读"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-17</div><div class="info-item-2">计算机视觉算法 DINO 论文解读</div></div><div class="info-2"><div class="info-item-1">    前言之前了解过很多的cv模型，但大多都是知道个大概。考虑到如果以后想研究具身的话，cv的前置知识是不可或缺的，于是打算把cv的里程碑式工作过一下。今天看到Emerging Properties in Self-Supervised Vision Transformers(DINO)这篇论文，觉得很有意思，写篇博客总结一下自己的看法。要注意的是，我并没有很多的cv前置知识，所以对于文中的很多技术的理解肯定是有偏差甚至错误的，希望大家宽容看待。  核心观点具体的来说，DINO是一种训练模型的宏观的方法论，对于具体应用的模型框架是没有太多的要求的。DINO的训练目标可以理解为让相似（指语义信息）的图片拥有相似的特征表示，不相似的图片拥有不相似的特征表示。 DINO是 *self-distillation with no labels* 的简称，抓住重点的话就是 self-supervised Learning（自监督）方法 和 distillation（蒸馏）...</div></div></div></a><a class="pagination-related" href="/2025/04/21/dpt/" title="计算机视觉算法 DPT(Vision Transformers for Dense Prediction) 论文解读"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-21</div><div class="info-item-2">计算机视觉算法 DPT(Vision Transformers for Dense Prediction) 论文解读</div></div><div class="info-2"><div class="info-item-1">    前言正在撰写depth anything的论文，在跑官方实现的时候发现自己在阅读论文的时候漏掉了一个满关键的组件：dpt。我觉得这个组件值得细致的学习，于是打算先完成dpt的学习以及博客撰写。先前的博客都是读完论文把东西都弄懂后按照自己理解的重要性撰写的，但是那样实在有点耗时。这一次尝试一下严格按照 abstract、intro、conclusion、related...</div></div></div></a><a class="pagination-related" href="/2025/03/14/EXIT/" title="强化学习算法 Expert Iteration (EXIT) 论文解读"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-14</div><div class="info-item-2">强化学习算法 Expert Iteration (EXIT) 论文解读</div></div><div class="info-2"><div class="info-item-1">   前言最近在尝试看automatic Theorem proving 相关的论文，发现没见过的名词有点多啊。只能是把一些技术相关的原论文拿出来仔细研究一下。其中Thinking Fast and Slow with Deep Learning and Tree...</div></div></div></a><a class="pagination-related" href="/2025/04/27/sam1/" title="计算机视觉算法 segment anything 论文解读"><img class="cover" src="/images/sam1.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-27</div><div class="info-item-2">计算机视觉算法 segment anything 论文解读</div></div><div class="info-2"><div class="info-item-1">   前言segment anything 可以说是声名在外了，之前看遥感领域文章的时候好几篇高引文章都是结合sam完成的。 但是今天读了sam的论文后，唯一的感觉就是文章好晦涩。我思考了之后，总结出一下几个原因：  sam提出了一种新的任务，为了解释这个新的任务很重要，篇幅大量往这里倾斜，其他部分的内容就少了。 新的任务肯定要新的模型，新的模型里的很多部分的组件抉择我感觉是可以大写特写的，结果只是提了一嘴用了啥，为啥用这个不用那个完全没讲。 这么多要讲的东西，论文的消融实验却消失了。整整30页的论文，消融实验只有半页。最让我难绷的是论文里关于模型偏见的部分都有一页。  其实文章没我说的那么不堪，但是也确实无法让人眼前一亮，尤其是看过depth anything的论文后。  核心观点论文作者开篇就讨论了为什么要提出一个新的模型。nlp领域的language...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#DINOV2"><span class="toc-number">2.</span> <span class="toc-text">DINOV2</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%AD%E7%BB%83%E6%95%B0%E6%8D%AE"><span class="toc-number">2.1.</span> <span class="toc-text">训练数据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E8%8E%B7%E5%8F%96"><span class="toc-number">2.1.1.</span> <span class="toc-text">数据获取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%8E%BB%E9%87%8D"><span class="toc-number">2.1.2.</span> <span class="toc-text">数据去重</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E6%A3%80%E7%B4%A2"><span class="toc-number">2.1.3.</span> <span class="toc-text">数据检索</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%90%E5%8D%87%E6%80%A7%E8%83%BD%E7%9A%84%E8%AE%AD%E7%BB%83%E7%BB%84%E4%BB%B6"><span class="toc-number">2.2.</span> <span class="toc-text">提升性能的训练组件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Koleo%E6%AD%A3%E5%88%99%E5%8C%96"><span class="toc-number">2.2.1.</span> <span class="toc-text">Koleo正则化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#swiglu-%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0"><span class="toc-number">2.2.2.</span> <span class="toc-text">swiglu 激活函数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%90%E5%8D%87%E6%95%88%E7%8E%87%E7%9A%84%E7%BB%84%E4%BB%B6"><span class="toc-number">2.3.</span> <span class="toc-text">提升效率的组件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#stochastic-depth"><span class="toc-number">2.3.1.</span> <span class="toc-text">stochastic depth</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#distillation"><span class="toc-number">2.3.2.</span> <span class="toc-text">distillation</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%9B%E5%8C%96%E6%80%A7"><span class="toc-number">2.4.</span> <span class="toc-text">泛化性</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li></ol></div></div></div></div></main><footer id="footer" style="background-image: url(/images/top_footer.jpg);"><div id="footer-wrap"><div class="copyright">&copy;2025 By abstcol</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">follow the plan</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
