@@ -19,12 +19,12 @@
   <meta name="author" content="abstcol">
   <meta name="keywords" content="">
   
-    <meta name="description" content="@[TOC]  前言segment anything 可以说是声名在外了，之前看遥感领域文章的时候好几篇高引文章都是结合sam完成的。 但是今天读了sam的论文后，唯一的感觉就是文章好晦涩。我思考了之后，总结出一下几个原因：  sam提出了一种新的任务，为了解释这个新的任务很重要，篇幅大量往这里倾斜，其他部分的内容就少了。 新的任务肯定要新的模型，新的模型里的很多部分的组件抉择我感觉是可以大写特写">
+    <meta name="description" content="---  @[TOC]  前言segment anything 可以说是声名在外了，之前看遥感领域文章的时候好几篇高引文章都是结合sam完成的。 但是今天读了sam的论文后，唯一的感觉就是文章好晦涩。我思考了之后，总结出一下几个原因：  sam提出了一种新的任务，为了解释这个新的任务很重要，篇幅大量往这里倾斜，其他部分的内容就少了。 新的任务肯定要新的模型，新的模型里的很多部分的组件抉择我感觉是">
 <meta property="og:type" content="article">
 <meta property="og:title" content="计算机视觉算法 segment anything 论文解读">
 <meta property="og:url" content="http://example.com/2025/04/27/sam1/index.html">
 <meta property="og:site_name" content="abstcol&#39;s blogs">
-<meta property="og:description" content="@[TOC]  前言segment anything 可以说是声名在外了，之前看遥感领域文章的时候好几篇高引文章都是结合sam完成的。 但是今天读了sam的论文后，唯一的感觉就是文章好晦涩。我思考了之后，总结出一下几个原因：  sam提出了一种新的任务，为了解释这个新的任务很重要，篇幅大量往这里倾斜，其他部分的内容就少了。 新的任务肯定要新的模型，新的模型里的很多部分的组件抉择我感觉是可以大写特写">
+<meta property="og:description" content="---  @[TOC]  前言segment anything 可以说是声名在外了，之前看遥感领域文章的时候好几篇高引文章都是结合sam完成的。 但是今天读了sam的论文后，唯一的感觉就是文章好晦涩。我思考了之后，总结出一下几个原因：  sam提出了一种新的任务，为了解释这个新的任务很重要，篇幅大量往这里倾斜，其他部分的内容就少了。 新的任务肯定要新的模型，新的模型里的很多部分的组件抉择我感觉是">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://gitee.com/abstcol/imagebed/raw/master/20250426193642619.png">
 <meta property="og:image" content="https://gitee.com/abstcol/imagebed/raw/master/20250426194407321.png">
@@ -35,7 +35,7 @@
 <meta property="og:image" content="https://gitee.com/abstcol/imagebed/raw/master/20250427154305118.png">
 <meta property="og:image" content="https://gitee.com/abstcol/imagebed/raw/master/20250427183025283.png">
 <meta property="article:published_time" content="2025-04-26T16:00:00.000Z">
-<meta property="article:modified_time" content="2025-05-03T05:56:29.269Z">
+<meta property="article:modified_time" content="2025-05-03T06:00:26.261Z">
 <meta property="article:author" content="abstcol">
 <meta property="article:tag" content="cv">
 <meta property="article:tag" content="theory">
@@ -309,7 +309,10 @@
             
               <div class="markdown-body">
                 
-                <p>@[TOC]</p>
+                <meta name="referrer" content="no-referrer"/>
+---
+
+<p>@[TOC]</p>
 <hr>
 <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>segment anything 可以说是声名在外了，之前看遥感领域文章的时候好几篇高引文章都是结合sam完成的。</p>
 <p>但是今天读了sam的论文后，唯一的感觉就是文章好晦涩。<br>我思考了之后，总结出一下几个原因：</p>
