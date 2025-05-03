@@ -19,12 +19,12 @@
   <meta name="author" content="abstcol">
   <meta name="keywords" content="">
   
-    <meta name="description" content="---  @[TOC]  前言segment anything 可以说是声名在外了，之前看遥感领域文章的时候好几篇高引文章都是结合sam完成的。 但是今天读了sam的论文后，唯一的感觉就是文章好晦涩。我思考了之后，总结出一下几个原因：  sam提出了一种新的任务，为了解释这个新的任务很重要，篇幅大量往这里倾斜，其他部分的内容就少了。 新的任务肯定要新的模型，新的模型里的很多部分的组件抉择我感觉是">
+    <meta name="description" content="前言#segment anything 可以说是声名在外了，之前看遥感领域文章的时候好几篇高引文章都是结合sam完成的。 但是今天读了sam的论文后，唯一的感觉就是文章好晦涩。我思考了之后，总结出一下几个原因：  sam提出了一种新的任务，为了解释这个新的任务很重要，篇幅大量往这里倾斜，其他部分的内容就少了。 新的任务肯定要新的模型，新的模型里的很多部分的组件抉择我感觉是可以大写特写的，结果">
 <meta property="og:type" content="article">
 <meta property="og:title" content="计算机视觉算法 segment anything 论文解读">
 <meta property="og:url" content="http://example.com/2025/04/27/sam1/index.html">
 <meta property="og:site_name" content="abstcol&#39;s blogs">
-<meta property="og:description" content="---  @[TOC]  前言segment anything 可以说是声名在外了，之前看遥感领域文章的时候好几篇高引文章都是结合sam完成的。 但是今天读了sam的论文后，唯一的感觉就是文章好晦涩。我思考了之后，总结出一下几个原因：  sam提出了一种新的任务，为了解释这个新的任务很重要，篇幅大量往这里倾斜，其他部分的内容就少了。 新的任务肯定要新的模型，新的模型里的很多部分的组件抉择我感觉是">
+<meta property="og:description" content="前言#segment anything 可以说是声名在外了，之前看遥感领域文章的时候好几篇高引文章都是结合sam完成的。 但是今天读了sam的论文后，唯一的感觉就是文章好晦涩。我思考了之后，总结出一下几个原因：  sam提出了一种新的任务，为了解释这个新的任务很重要，篇幅大量往这里倾斜，其他部分的内容就少了。 新的任务肯定要新的模型，新的模型里的很多部分的组件抉择我感觉是可以大写特写的，结果">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://gitee.com/abstcol/imagebed/raw/master/20250426193642619.png">
 <meta property="og:image" content="https://gitee.com/abstcol/imagebed/raw/master/20250426194407321.png">
@@ -35,7 +35,7 @@
 <meta property="og:image" content="https://gitee.com/abstcol/imagebed/raw/master/20250427154305118.png">
 <meta property="og:image" content="https://gitee.com/abstcol/imagebed/raw/master/20250427183025283.png">
 <meta property="article:published_time" content="2025-04-26T16:00:00.000Z">
-<meta property="article:modified_time" content="2025-05-03T06:00:26.261Z">
+<meta property="article:modified_time" content="2025-05-03T06:32:48.639Z">
 <meta property="article:author" content="abstcol">
 <meta property="article:tag" content="cv">
 <meta property="article:tag" content="theory">
@@ -309,12 +309,10 @@
             
               <div class="markdown-body">
                 
-                <meta name="referrer" content="no-referrer"/>
----
+                <meta name="referrer" content="no-referrer">
 
-<p>@[TOC]</p>
-<hr>
-<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>segment anything 可以说是声名在外了，之前看遥感领域文章的时候好几篇高引文章都是结合sam完成的。</p>
+
+<h1><span id="qian-yan">前言</span><a href="#qian-yan" class="header-anchor">#</a></h1><p>segment anything 可以说是声名在外了，之前看遥感领域文章的时候好几篇高引文章都是结合sam完成的。</p>
 <p>但是今天读了sam的论文后，唯一的感觉就是文章好晦涩。<br>我思考了之后，总结出一下几个原因：</p>
 <ol>
 <li>sam提出了一种新的任务，为了解释这个新的任务很重要，篇幅大量往这里倾斜，其他部分的内容就少了。</li>
@@ -323,20 +321,20 @@
 </ol>
 <p>其实文章没我说的那么不堪，但是也确实无法让人眼前一亮，尤其是看过depth anything的论文后。</p>
 <hr>
-<h1 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h1><p>论文作者开篇就讨论了为什么要提出一个新的模型。<br>nlp领域的language model是一个很好的模型，因为它能够利用大量的语料进行训练，训练成功只需要少量的prompt就可以应用于下游任务了。</p>
+<h1><span id="he-xin-guan-dian">核心观点</span><a href="#he-xin-guan-dian" class="header-anchor">#</a></h1><p>论文作者开篇就讨论了为什么要提出一个新的模型。<br>nlp领域的language model是一个很好的模型，因为它能够利用大量的语料进行训练，训练成功只需要少量的prompt就可以应用于下游任务了。</p>
 <p>clip也是一个很好的模型，可以利用大量图像文本对进行预训练，很容易就应用到下游。因为有图像和文本的编码部分，所以也算可以利用文字prompt。</p>
 <p>但是还有很多cv领域的任务是不能从clip这种encoder中收益的。（虽然但是个人感觉语义分割应该是可以从clip中收益的吧？我感觉这里有点为了讲故事而讲故事了）</p>
 <p>所以作者提出要构建一个图像分割领域的fundation model，这个model满足两个条件：<br>1.在大规模数据上进行预训练<br>（其实这个条件的目的就是第二个条件。大规模预训练&#x3D;良好泛化性&#x3D;zero shot能力）<br>2.可以通过prompt运用到很多下游任务。</p>
 <p>作者接下来的大量篇幅是围绕着训练出具有这种性质的模型所需要的三要素来讲的，也就是：<br>1.什么样的任务能训练出泛化性强的模型？<br>2.什么样的模型架构能支撑完成1提出的任务？<br>3.怎么样收集大量且广泛的数据？</p>
 <p>如果说具体的细节是战术的话，这三个要素就是战略了。<br>我虽然前面吐槽了很多关于模型细节相关部分的缺失，但是，作者能够提出一种新的体系，并且实操效果很好，我还是很佩服的。</p>
 <hr>
-<h1 id="什么样的任务"><a href="#什么样的任务" class="headerlink" title="什么样的任务"></a>什么样的任务</h1><p>什么样的任务可以训练出泛化性强的模型？</p>
+<h1><span id="shi-me-yang-de-ren-wu">什么样的任务</span><a href="#shi-me-yang-de-ren-wu" class="header-anchor">#</a></h1><p>什么样的任务可以训练出泛化性强的模型？</p>
 <p>其实就是   <strong>利用prompt产生分割掩码。</strong></p>
 <p>在图像分割领域的prompt是什么？</p>
 <p>作者认为应该是多种形式的，包括文本、点、方框、图像掩码。<br>我觉得这是考虑到了图像处理领域的几个任务的常见输出：图像文本匹配、目标检测、语义分割。直接将prompt的形式和下游任务匹配了，那肯定可以很好的适应下游任务。</p>
 <p>为什么说如果模型可以<strong>利用prompt产生分割掩码</strong>就有很好的泛化性呢？<br>这是因为sam加上其他的cv组件（提供prompt），就可以完成很大一部分的图像分割任务。<br>作者在这里格外强调，这不是说我们提前在多任务上进行训练得来的能力，而是我们对多种样式的prompt的兼容能力所带来的能力。</p>
 <hr>
-<h1 id="用了什么模型框架？"><a href="#用了什么模型框架？" class="headerlink" title="用了什么模型框架？"></a>用了什么模型框架？</h1><p>关于模型的宏观框架可以用下面的一幅图理解。<br><img src="https://gitee.com/abstcol/imagebed/raw/master/20250426193642619.png" srcset="/img/loading.gif" lazyload><br>总的来说可以分为三部分：图像编码器，提示编码器，掩码解码器。</p>
+<h1><span id="yong-liao-shi-me-mo-xing-kuang-jia">用了什么模型框架？</span><a href="#yong-liao-shi-me-mo-xing-kuang-jia" class="header-anchor">#</a></h1><p>关于模型的宏观框架可以用下面的一幅图理解。<br><img src="https://gitee.com/abstcol/imagebed/raw/master/20250426193642619.png" srcset="/img/loading.gif" lazyload><br>总的来说可以分为三部分：图像编码器，提示编码器，掩码解码器。</p>
 <p>原始的图像输入到一个encoder中输出tokens作为image embedding。</p>
 <p>这个image embedding只会生成一次，这也是这篇工作的卖点之一，给定图片，用计算量大的encoder生成一次特征图，之后不同的prompt都是作用于这个特征图上的。<br>关于这个encoder的选择，作者使用了windowed attetion和global attention的结合：大部分attention layer使用windowed attention，中间选几个layer使用global attention。</p>
 <p>可能有人不太清楚什么是windowed attention，其实就是根据图片的原始二维顺序排列token，然后把相邻的token划分为一个window（不重合），之后的注意力计算，只在window内部进行。<br>这个image encoder的选择是mae预训练的vit，其实我挺好奇为什么没有用dino预训练的，但是作者也没有在为什么选mae多费笔墨。</p>
@@ -377,7 +375,7 @@
 <br>
 <br>
 
-<h2 id="避免模糊输出"><a href="#避免模糊输出" class="headerlink" title="避免模糊输出"></a>避免模糊输出</h2><p><img src="https://gitee.com/abstcol/imagebed/raw/master/20250426194407321.png" srcset="/img/loading.gif" lazyload></p>
+<h2><span id="bi-mian-mo-hu-shu-chu">避免模糊输出</span><a href="#bi-mian-mo-hu-shu-chu" class="header-anchor">#</a></h2><p><img src="https://gitee.com/abstcol/imagebed/raw/master/20250426194407321.png" srcset="/img/loading.gif" lazyload></p>
 <p>有些读者可能已经注意到了，这个图中的output tokens 怎么是复数啊？有很多output tokens 吗？<br>以及这个iou score是什么东西？</p>
 <p>这其实都是作者为了避免模糊输出所做出的特殊模型框架设计。</p>
 <p>作者在这里提到了说是模型一定要有鲁棒性，无论是多模糊的prompt，至少要输出一个<strong>合理的</strong>图像分割的掩码。<br>对应到llm就是无论你输入什么，模型总会输出一个token。</p>
@@ -420,7 +418,7 @@
 
 
 
-<h2 id="训练方法"><a href="#训练方法" class="headerlink" title="训练方法"></a>训练方法</h2><p>了解了sam中各种各样的prompt，以及十分特殊的模型结构，我相信大部分人都会有一个疑惑，这东西要怎么训练？或者说要怎么训练才能稳定？</p>
+<h2><span id="xun-lian-fang-fa">训练方法</span><a href="#xun-lian-fang-fa" class="header-anchor">#</a></h2><p>了解了sam中各种各样的prompt，以及十分特殊的模型结构，我相信大部分人都会有一个疑惑，这东西要怎么训练？或者说要怎么训练才能稳定？</p>
 <p>作者的方法也是十分的特殊，但是我看完之后的感觉是这样做很合理。</p>
 <p>我们把sam训练的一个最小单位称为一个iteration，一个迭代。<br>在一个迭代中，我们只处理一个mask掩码。<br>（注意，一个掩码不等于一个样本。严格来说有很多的样本的掩码是一样的，但是prompt不同）</p>
 <p>首先我们会以相同的概率选择点&#x2F;框。</p>
@@ -431,7 +429,7 @@
 <p>关于具体的损失函数。作者在掩码预测这一方面使用了focal loss 以及 dice loss 的结合。</p>
 <p>focal loss 是交叉熵的改进，更加关注预测与实际偏差较大的损失占比（虽然交叉熵本身就有这样的功能），具体的表达式如下。<br><img src="https://gitee.com/abstcol/imagebed/raw/master/20250427154117769.png" srcset="/img/loading.gif" lazyload><br>dice loss 则就是f1-score，均衡了召回率以及精确率。<br><img src="https://gitee.com/abstcol/imagebed/raw/master/20250427154305118.png" srcset="/img/loading.gif" lazyload></p>
 <hr>
-<h1 id="如何获得数据集？"><a href="#如何获得数据集？" class="headerlink" title="如何获得数据集？"></a>如何获得数据集？</h1><p>论文的很大一部分篇幅是在说作者新构建的这个数据集SA-1B。</p>
+<h1><span id="ru-he-huo-de-shu-ju-ji">如何获得数据集？</span><a href="#ru-he-huo-de-shu-ju-ji" class="header-anchor">#</a></h1><p>论文的很大一部分篇幅是在说作者新构建的这个数据集SA-1B。</p>
 <p>数据集的构建过程其实很简单，就是利用sam辅助生成掩码（这得益于mask decoder的轻量化，只要提前计算好图像的特征图，那么模型完全可以几乎实时的响应标注员，根据标注员给出的点prompt生成mask），利用生成掩码训练sam，不断重复。</p>
 <p>整个过程可以分为三个阶段。</p>
 <p>第一个阶段主要是人工标注。因为一开始的sam能力很弱（训练数据少），所以生成的掩码和真实的掩码有很大的差距，需要标注员手动修改。<br>随着第一阶段的进行，sam能力越来越强，标注员修改用时也越来越少。<br>值得注意的是，这一阶段标注员标注的对象是<em>最主要的部分</em>，并没有太考虑掩码的多样性。</p>
@@ -444,7 +442,7 @@
 <p>左边是三个阶段迭代数据集对于模型能力的提升效果。很明显的是哪怕第三个阶段的数据是模型自己产生的，但是一系列的后处理，加上更多的数据意味着更强的泛化性，模型的性能还是显著的提升了。</p>
 <p>中间的图是模型性能关于数据规模的scaling law，右边的图是模型性能关于模型大小的scaling law。<br>其实结果都不太乐观吧，我个人感觉sam的结构太过于特殊了，decoder和prompt encoder 太小了，限制了性能的进一步提升。</p>
 <hr>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>sam的论文和代码都不太好理解，一部分原因是我没接触过这个领域，还有一部分原因是这整个框架都是极其<strong>客制化</strong>的，增加了读者的理解成本。</p>
+<h1><span id="zong-jie">总结</span><a href="#zong-jie" class="header-anchor">#</a></h1><p>sam的论文和代码都不太好理解，一部分原因是我没接触过这个领域，还有一部分原因是这整个框架都是极其<strong>客制化</strong>的，增加了读者的理解成本。</p>
 <p>我个人的看法，真正的有潜力的任务&#x2F;模型 一定是可以充分运用更多的计算资源，更多的数据的。</p>
 <p>最后在吐槽一下，论文编排真是不够好，看的头晕。</p>
 
