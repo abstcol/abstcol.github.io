@@ -4,31 +4,6 @@
   
   
   <entry>
-    <title>test</title>
-    <link href="/2025/05/03/test/"/>
-    <url>/2025/05/03/test/</url>
-    
-    <content type="html"><![CDATA[<p>test post</p><p><img src="/test.png" alt="1"><br><img src="/images/test.png" alt="1"></p>]]></content>
-    
-    
-    <categories>
-      
-      <category>python</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>原创</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
     <title>Hello World</title>
     <link href="/2025/05/03/hello-world/"/>
     <url>/2025/05/03/hello-world/</url>
