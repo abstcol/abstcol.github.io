@@ -1,0 +1,223 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>VLA算法 X-VLA: Soft-Prompted Transformer as Scalable Cross-Embodiment Vision-Language-Action Model 论文解读 | abstcol's blogs</title><meta name="author" content="abstcol"><meta name="copyright" content="abstcol"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言XVLA这篇论文主要干了两件事：  提出了 soft-prompt 这个提升模型跨本体能力的架构设计（事实上并没有给予模型直接跨本体的能力，而是给予模型可以通过一小批数据的训练跨本体的能力，这里的区别之后会讲）  训练了一个采用  soft-prompt 架构 并且 采用了一系列其他技巧训练而成的基座vla模型 XVLA。  soft-prompt的架构是十分巧妙的，显然的有着其意义">
+<meta property="og:type" content="article">
+<meta property="og:title" content="VLA算法 X-VLA: Soft-Prompted Transformer as Scalable Cross-Embodiment Vision-Language-Action Model 论文解读">
+<meta property="og:url" content="https://abstcol.github.io/2026/02/05/xvla/index.html">
+<meta property="og:site_name" content="abstcol&#39;s blogs">
+<meta property="og:description" content="前言XVLA这篇论文主要干了两件事：  提出了 soft-prompt 这个提升模型跨本体能力的架构设计（事实上并没有给予模型直接跨本体的能力，而是给予模型可以通过一小批数据的训练跨本体的能力，这里的区别之后会讲）  训练了一个采用  soft-prompt 架构 并且 采用了一系列其他技巧训练而成的基座vla模型 XVLA。  soft-prompt的架构是十分巧妙的，显然的有着其意义">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://abstcol.github.io/images/xvla.png">
+<meta property="article:published_time" content="2026-02-05T06:54:07.000Z">
+<meta property="article:modified_time" content="2026-02-09T05:38:05.390Z">
+<meta property="article:author" content="abstcol">
+<meta property="article:tag" content="theory">
+<meta property="article:tag" content="vla">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://abstcol.github.io/images/xvla.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "VLA算法 X-VLA: Soft-Prompted Transformer as Scalable Cross-Embodiment Vision-Language-Action Model 论文解读",
+  "url": "https://abstcol.github.io/2026/02/05/xvla/",
+  "image": "https://abstcol.github.io/images/xvla.png",
+  "datePublished": "2026-02-05T06:54:07.000Z",
+  "dateModified": "2026-02-09T05:38:05.390Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "abstcol",
+      "url": "https://abstcol.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/images/round.png"><link rel="canonical" href="https://abstcol.github.io/2026/02/05/xvla/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'VLA算法 X-VLA: Soft-Prompted Transformer as Scalable Cross-Embodiment Vision-Language-Action Model 论文解读',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">17</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/xvla.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">abstcol's blogs</span></a><a class="nav-page-title" href="/"><span class="site-name">VLA算法 X-VLA: Soft-Prompted Transformer as Scalable Cross-Embodiment Vision-Language-Action Model 论文解读</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">VLA算法 X-VLA: Soft-Prompted Transformer as Scalable Cross-Embodiment Vision-Language-Action Model 论文解读</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-02-05T06:54:07.000Z" title="发表于 2026-02-05 14:54:07">2026-02-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-09T05:38:05.390Z" title="更新于 2026-02-09 13:38:05">2026-02-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/tech/">tech</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><meta name="referrer" content="no-referrer"/>
+
+<meta name="referrer" content="no-referrer"/>
+
+
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>XVLA这篇论文主要干了两件事：</p>
+<ol>
+<li>提出了 <strong>soft-prompt</strong> 这个提升模型跨本体能力的架构设计（<em>事实上并没有给予模型直接跨本体的能力，而是给予模型可以通过一小批数据的训练跨本体的能力，这里的区别之后会讲</em>） </li>
+<li>训练了一个采用  <strong>soft-prompt</strong> 架构 并且 采用了一系列其他技巧训练而成的基座vla模型 <strong>XVLA</strong>。</li>
+</ol>
+<p>soft-prompt的架构是十分巧妙的，显然的有着其意义。<br>XVLA模型是小巧（0.9B）且强大的，显然的也有着其意义。</p>
+<hr>
+<h1 id="soft-prompt"><a href="#soft-prompt" class="headerlink" title="soft-prompt"></a>soft-prompt</h1><h2 id="问题定义"><a href="#问题定义" class="headerlink" title="问题定义"></a>问题定义</h2><p><strong>模型的实地部署效果和训练场景的效果相差较大</strong>一直是一个大问题。<br>这不止是因为部署时的背景环境的差别，更多的其实是因为部署时<strong>硬件配置</strong>和训练场景时的硬件配置不一样。<br>不同的硬件品牌，不同的两臂距离，不同的摄像头设置都会加剧这种问题。<br>使用具有跨本体效果的EEF并不能完全解决这个问题。（<em>存疑</em>）</p>
+<h2 id="架构解释"><a href="#架构解释" class="headerlink" title="架构解释"></a>架构解释</h2><p>要完全解决这种因为硬件配置导致的效果下滑有很多种方式，但是主旨都是一样的，那就是将通用的知识和<strong>硬件配置特定</strong>的知识分开来进行存储。</p>
+<p>文中也列出了符合这个主旨的解决方法的尝试，如下图。<br><img src="https://gitee.com/abstcol/imagebed/raw/master/20260205170405905.png"><br><em>论文图二</em></p>
+<p>其中第一种方法是已经被人提出的：在action token最后的映射层根据不同硬件配置检索不同参数。<br>但是其有着很大的缺陷，也就是硬件配置相关的信息只能在动作生成的最后一步起作用，这让前期的大量的注意力计算根本意识不到硬件配置的更换。</p>
+<p>作者指出了这一缺点，并提出了三种可能弥补这一缺陷的方法。</p>
+<p>第二种方法是额外将观察token（语言图像）和vlabackbone之间的mlp设置为可以根据硬件替换的。<br>显然的是这对于vla输入的隐空间造成了极大且频繁的变动，对于训练稳定性是很不利的。</p>
+<p>第三种方法通过自然语言描述来嵌入配置信息，但是显然的是配置信息很难通过简洁的语言表示。<br>通过下面表格的例子可以看出。<br><img src="https://gitee.com/abstcol/imagebed/raw/master/20260206133220421.png"><br><em>论文表十</em></p>
+<p>第四种方法就是如下的方法，同时作者还做出了一些改动。<br>soft-prompt的架构非常的简单，直接看下面的架构图就可以看明白。</p>
+<p><img src="https://gitee.com/abstcol/imagebed/raw/master/20260205164038215.png"><br><em>论文图十</em></p>
+<p>如果是为了了解soft-prompt的结构的话，我们只看虚线以上的部分就够了，如下。<br><img src="https://gitee.com/abstcol/imagebed/raw/master/20260205164323460.png"><br>训练时根据不同数据集（实际上就是不同的硬件配置，哪怕相同的机械臂搭建的时候也会存在不同那显然也视为不同的硬件配置）的id选取不同的soft-prompt，input&#x2F;output projection，这样迫使模型将通用的信息压缩到公用的部分，把配置信息压缩到soft-prompt，input&#x2F;output projection中。</p>
+<p>对于上面的三种方案，作者做了训练阶段的对比实验，如图。<br><img src="https://gitee.com/abstcol/imagebed/raw/master/20260205174326290.png"><br><em>论文图四</em></p>
+<p>实验证明了方法四的优越性，但是我仍然觉得应该用实测代替评估损失。</p>
+<p>除了上面被毙掉的两个方案（方案二和三），作者还对两个很有希望的方案进行了实验。<br>也就是</p>
+<ol>
+<li>框架不变，预训练时采用lora更新主体架构。</li>
+<li>引入moe，期望模型自动在不同expert分配不同硬件信息。</li>
+</ol>
+<p>事实上两种方法都遇到了训练问题。<br>第一种方法在直觉上就不可能成功，因为它无法强制backbone习得通用的知识，很可能出现附加层学会大部分知识的情况。况且，在预训练阶段backbone不稳定的情况下引入lora附加层很容易训练崩掉。</p>
+<p>第二种方法作者遇到了moe训练普遍遇到的路由只选特定专家的问题，尝试加入正则但是训练不稳定。</p>
+<h2 id="训练"><a href="#训练" class="headerlink" title="训练"></a>训练</h2><p>回到soft-prompt架构<br>这样的一个架构我们要如何训练它呢？</p>
+<p>在预训练的过程中，就如上一节提到的，给每个数据集分配一个id，根据id动态选择参数进行训练。</p>
+<p>而在预训练完之后，对于新的硬件配置，我们分两个阶段完成微调。</p>
+<ol>
+<li>冻结除了soft-prompt，input&#x2F;output projection之外的所有参数，进行微调。</li>
+<li>所有参数进行微调。</li>
+</ol>
+<p>这个两阶段的划分十分容易理解且符合直觉，但作者仍然做了训练recipe的消融，这是值得肯定的。<br><img src="https://gitee.com/abstcol/imagebed/raw/master/20260206134634094.png"><br><em>论文图九</em></p>
+<p>（这里有一个有意思的观点的迂回，不同的初始化影响的不只是收敛的速度，还有最终的收敛值）</p>
+<h2 id="可能的改进"><a href="#可能的改进" class="headerlink" title="可能的改进"></a>可能的改进</h2><p>论文提出的soft-prompt方案十分有力，可以想象这个架构在未来也会一直起着作用。</p>
+<p>论文描述了这样一个未来：对于任何一个新的硬件配置，只需要很少的数据就可以让模型在保留原有能力的同时适应这个硬件配置。</p>
+<p>但是我觉得论文仍然可以增加一个实验：模型A通过两阶段微调适应了硬件a，于此同时训练出了一个硬件啊对应的硬件知识插件。<br>直接将硬件a对应的插件替换给模型B，模型B不需要训练也适应了硬件a。</p>
+<p>这其实在证明一件事：<strong>模型对于硬件配置的适应性和其通用能力进行了彻底的解耦。</strong></p>
+<p>这满足了具身领域算法和硬件的前后向兼容。</p>
+<p>这种兼容的需求是 <strong>算法&#x2F;硬件不断迭代的同时，一定会人为制造&#x2F;自然形成算法硬件版本错配</strong> 造成的。</p>
+<hr>
+<h1 id="XVLA"><a href="#XVLA" class="headerlink" title="XVLA"></a>XVLA</h1><p>论文的另一个成果就是加上了soft-prompt技术的新基座模型xvla。<br>论文对于xvla的架构设计以及训练recipe选择进行了详尽的介绍，下表就是一个技术选择的消融结果（所有提到的技术都使用的情况下把每个技术都单独除去后比较效果是更好的选择）</p>
+<p><img src="https://gitee.com/abstcol/imagebed/raw/master/20260206161135867.png"><br><em>论文表一</em></p>
+<p>其中的 Intension abstraction比较有意思，这个技巧实际上是降低收集数据时的视频帧率的优化版。</p>
+<p>如何在降低数据帧率的同时做到删去的帧数据都是无效的呢？这是一个有趣的点。</p>
+<hr>
+<h1 id="编排的问题"><a href="#编排的问题" class="headerlink" title="编排的问题"></a>编排的问题</h1><p>论文给出了两个新东西。<br>但是这两者在一篇文章中出现却给我的阅读带来了很多的障碍，最明显的是：</p>
+<ol>
+<li>读者的预期是错位的。我期望得到一个对于新技术的明了的介绍，但是论文夹杂着大量的关于如何训练一个基座vla模型的技巧的介绍。</li>
+<li>对比是不公平的。soft-prompt架构的有效性!&#x3D;使用了soft-prompt架构以及其他一系列架构&#x2F;训练recipe创新的xvla的有效性。论文的对比实验使用的xvla，显然不具有很强的说服力</li>
+</ol>
+<hr>
+<p>附上benchmark表现对比。</p>
+<p><img src="https://gitee.com/abstcol/imagebed/raw/master/20260206143047761.png"><br><em>论文表二</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://abstcol.github.io">abstcol</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://abstcol.github.io/2026/02/05/xvla/">https://abstcol.github.io/2026/02/05/xvla/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://abstcol.github.io" target="_blank">abstcol's blogs</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/theory/">theory</a><a class="post-meta__tags" href="/tags/vla/">vla</a></div><div class="post-share"><div class="social-share" data-image="/images/xvla.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/01/16/engram/" title="大预言模型算法 Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models"><img class="cover" src="/images/engram.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">大预言模型算法 Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models</div></div><div class="info-2"><div class="info-item-1">      前言论文的名字是通过查询实现条件记忆，实际提出的算法可以简称为engram。 论文并未提出一种持续学习的新范式，文中的方法确实是增强了模型的记忆能力，但是提供这种记忆能力的模块并不可以在训练之后的使用中被轻松的替换更新从而实现持续学习的能力。 engram的目的其实就是在增加模型的记忆能力，同时不使模型的思考能力退化。 但是这显然不是能够轻易被实现的，这需要对整体框架的大刀阔斧的改动。  扩大词表怎样增加模型的记忆能力？ 这里的记忆能力包括两种，一种是预训练中获得的关于世界知识的长期记忆力，另一种是对话过程中用到的的短期记忆力。（此处并不涉及持续学习的能力） 这两种记忆能力一定程度上都可以通过扩大词表来提升。（当然，也有别的很多方法来提升记忆能力） 简单解释一下为什么扩大词表可以提升记忆能力：扩大了词表就增加了更多复合词作为单个token，举例来说的话就是原本 电脑 需要两个token表示，现在只需要一个token就可以表示了，那么在预训练的文本中电脑相关的知识可以更加专一的被提取到 电脑 这个token中（原来被分散到 电 脑...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/03/14/EXIT/" title="强化学习算法 Expert Iteration (EXIT) 论文解读"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-14</div><div class="info-item-2">强化学习算法 Expert Iteration (EXIT) 论文解读</div></div><div class="info-2"><div class="info-item-1">   前言最近在尝试看automatic Theorem proving 相关的论文，发现没见过的名词有点多啊。只能是把一些技术相关的原论文拿出来仔细研究一下。其中Thinking Fast and Slow with Deep Learning and Tree...</div></div></div></a><a class="pagination-related" href="/2025/05/15/adjoint-matrix/" title="线性代数理论 伴随矩阵相关复习"><img class="cover" src="/images/math.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-05-15</div><div class="info-item-2">线性代数理论 伴随矩阵相关复习</div></div><div class="info-2"><div class="info-item-1">   前言给定系统的状态转移方程： 就可以计算对应的状态转移矩阵： 一旦有了系统的状态转移矩阵，那么我们就可以计算系统的零输入响应： 那么我们要如何计算系统的状态转移矩阵呢？时域的微分系统分析很复杂，我们可以通过拉式变换将其转换为代数系统，在代数系统求解后我们再拉式逆变换回时域。我们先将它转移到复频域（不考虑输入）：然后进行一系列的代数变换，我们就可以得到零输入响应在复频域的闭合解：之后我们进行拉式逆变换就可以得到零输入响应在时域的闭合解：这个求法有两个计算点，一个是矩阵的逆的求解，另一个是拉式变换以及反变换，这篇博客讨论一下矩阵的逆为什么可以通过伴随矩阵进行求解。  数学证明从矩阵的逆的定义入手，满足下列等式的矩阵B是A的逆矩阵：这其实等价于对于B的每一列$b_j$都满足：$Ab_j&#x3D;e_j$（$e_j$是第j个标准基向量） 利用克拉默法则（Cramer’s Rule）...</div></div></div></a><a class="pagination-related" href="/2025/05/16/control/" title="现代控制理论 概念梳理"><img class="cover" src="/images/control.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-05-16</div><div class="info-item-2">现代控制理论 概念梳理</div></div><div class="info-2"><div class="info-item-1">...</div></div></div></a><a class="pagination-related" href="/2025/04/24/depthanything/" title="计算机视觉算法 depth anything 论文解读"><img class="cover" src="/images/depthanything.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-24</div><div class="info-item-2">计算机视觉算法 depth anything 论文解读</div></div><div class="info-2"><div class="info-item-1">    前言DINOV2有很多的下游应用领域，有很多工作就是将DINOV2当作预训练的backbone使用的，都取得了比较好的效果。去年我在学习遥感图像处理的时候，就用过其中的一个工作：depth anything v2（GitHub），当时只是拿来即用，没有仔细的研究过其中细节。最近正好有时间，就把这部分内容重新整理一下。（同样，对于mde领域我没有太多了解，难免有错漏之处） depth anything所用的网络架构没有什么创新，还是dpt那一套（参考我上一篇博客：计算机视觉算法 DPT(Vision Transformers for Dense Prediction)...</div></div></div></a><a class="pagination-related" href="/2025/04/24/depthanythingv2/" title="计算机视觉算法 depth anything v2 论文解读"><img class="cover" src="/images/depthanything.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-24</div><div class="info-item-2">计算机视觉算法 depth anything v2 论文解读</div></div><div class="info-2"><div class="info-item-1">   前言总算学到 depth anything v2了。去年在遥感领域科研（并非科研）的时候尝试的方向就是结合深度图进行变化检测。因为只进行了简单的模型拼接效果很差，可以说是只带来了副作用。现在想来当时的具体操作上的问题暂且不谈，最大的问题是发生在宏观观念上面的。 我的目的是解决变化检测中 建筑物相关的检测正确率，假设是模型无法区别建筑物和其他后景、植物。解决方法是融合深度图作为监督增加模型对于建筑的语义理解。 开始工作前我以mde rs cd 为关键词在wos上检索了一下有没有相关工作。但是今年开学时发现mde在遥感领域有它自己的名词，而事实是深度图帮助变化检测的工作已经存在了。 对一个领域没有广泛而深入的研究之前不应该开始自己的研究。 扯得有点远了，还是说回depth anything v2吧。这篇工作的模型框架相较于depth...</div></div></div></a><a class="pagination-related" href="/2025/04/17/dino/" title="计算机视觉算法 DINO 论文解读"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-17</div><div class="info-item-2">计算机视觉算法 DINO 论文解读</div></div><div class="info-2"><div class="info-item-1">    前言之前了解过很多的cv模型，但大多都是知道个大概。考虑到如果以后想研究具身的话，cv的前置知识是不可或缺的，于是打算把cv的里程碑式工作过一下。今天看到Emerging Properties in Self-Supervised Vision Transformers(DINO)这篇论文，觉得很有意思，写篇博客总结一下自己的看法。要注意的是，我并没有很多的cv前置知识，所以对于文中的很多技术的理解肯定是有偏差甚至错误的，希望大家宽容看待。  核心观点具体的来说，DINO是一种训练模型的宏观的方法论，对于具体应用的模型框架是没有太多的要求的。DINO的训练目标可以理解为让相似（指语义信息）的图片拥有相似的特征表示，不相似的图片拥有不相似的特征表示。 DINO是 *self-distillation with no labels* 的简称，抓住重点的话就是 self-supervised Learning（自监督）方法 和 distillation（蒸馏）...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#soft-prompt"><span class="toc-number">2.</span> <span class="toc-text">soft-prompt</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%AE%9A%E4%B9%89"><span class="toc-number">2.1.</span> <span class="toc-text">问题定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%B6%E6%9E%84%E8%A7%A3%E9%87%8A"><span class="toc-number">2.2.</span> <span class="toc-text">架构解释</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%AD%E7%BB%83"><span class="toc-number">2.3.</span> <span class="toc-text">训练</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%AF%E8%83%BD%E7%9A%84%E6%94%B9%E8%BF%9B"><span class="toc-number">2.4.</span> <span class="toc-text">可能的改进</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#XVLA"><span class="toc-number">3.</span> <span class="toc-text">XVLA</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BC%96%E6%8E%92%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-number">4.</span> <span class="toc-text">编排的问题</span></a></li></ol></div></div></div></div></main><footer id="footer" style="background-image: url(/images/top_footer.jpg);"><div id="footer-wrap"><div class="copyright">&copy;2025 - 2026 By abstcol</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">follow the plan</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

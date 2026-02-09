@@ -1,0 +1,213 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>大预言模型算法 Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models | abstcol's blogs</title><meta name="author" content="abstcol"><meta name="copyright" content="abstcol"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言论文的名字是通过查询实现条件记忆，实际提出的算法可以简称为engram。 论文并未提出一种持续学习的新范式，文中的方法确实是增强了模型的记忆能力，但是提供这种记忆能力的模块并不可以在训练之后的使用中被轻松的替换更新从而实现持续学习的能力。 engram的目的其实就是在增加模型的记忆能力，同时不使模型的思考能力退化。 但是这显然不是能够轻易被实现的，这需要对整体框架的大刀阔斧的改动。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="大预言模型算法 Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models">
+<meta property="og:url" content="https://abstcol.github.io/2026/01/16/engram/index.html">
+<meta property="og:site_name" content="abstcol&#39;s blogs">
+<meta property="og:description" content="前言论文的名字是通过查询实现条件记忆，实际提出的算法可以简称为engram。 论文并未提出一种持续学习的新范式，文中的方法确实是增强了模型的记忆能力，但是提供这种记忆能力的模块并不可以在训练之后的使用中被轻松的替换更新从而实现持续学习的能力。 engram的目的其实就是在增加模型的记忆能力，同时不使模型的思考能力退化。 但是这显然不是能够轻易被实现的，这需要对整体框架的大刀阔斧的改动。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://abstcol.github.io/images/engram.jpg">
+<meta property="article:published_time" content="2026-01-16T08:28:11.000Z">
+<meta property="article:modified_time" content="2026-01-26T06:14:10.629Z">
+<meta property="article:author" content="abstcol">
+<meta property="article:tag" content="DRL">
+<meta property="article:tag" content="LLM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://abstcol.github.io/images/engram.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "大预言模型算法 Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models",
+  "url": "https://abstcol.github.io/2026/01/16/engram/",
+  "image": "https://abstcol.github.io/images/engram.jpg",
+  "datePublished": "2026-01-16T08:28:11.000Z",
+  "dateModified": "2026-01-26T06:14:10.629Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "abstcol",
+      "url": "https://abstcol.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/images/round.png"><link rel="canonical" href="https://abstcol.github.io/2026/01/16/engram/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '大预言模型算法 Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">17</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/engram.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">abstcol's blogs</span></a><a class="nav-page-title" href="/"><span class="site-name">大预言模型算法 Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">大预言模型算法 Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-16T08:28:11.000Z" title="发表于 2026-01-16 16:28:11">2026-01-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-26T06:14:10.629Z" title="更新于 2026-01-26 14:14:10">2026-01-26</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/tech/">tech</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><meta name="referrer" content="no-referrer"/>
+
+<meta name="referrer" content="no-referrer"/>
+
+
+<hr>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>论文的名字是<strong>通过查询实现条件记忆</strong>，实际提出的算法可以简称为engram。</p>
+<p>论文并未提出一种持续学习的新范式，文中的方法确实是增强了模型的记忆能力，但是提供这种记忆能力的模块并不可以在训练之后的使用中被轻松的<strong>替换更新</strong>从而实现持续学习的能力。</p>
+<p>engram的目的其实就是在<strong>增加模型的记忆能力，同时不使模型的思考能力退化</strong>。</p>
+<p>但是这显然不是能够轻易被实现的，这需要对整体框架的大刀阔斧的改动。</p>
+<hr>
+<h1 id="扩大词表"><a href="#扩大词表" class="headerlink" title="扩大词表"></a>扩大词表</h1><p>怎样增加模型的记忆能力？</p>
+<p>这里的记忆能力包括两种，一种是预训练中获得的关于世界知识的长期记忆力，另一种是对话过程中用到的的短期记忆力。（此处并不涉及持续学习的能力）</p>
+<p>这两种记忆能力一定程度上都可以通过扩大词表来提升。（当然，也有别的很多方法来提升记忆能力）</p>
+<p>简单解释一下为什么扩大词表可以提升记忆能力：<br>扩大了词表就增加了更多<strong>复合词</strong>作为单个token，举例来说的话就是原本 <strong>电脑</strong> 需要两个token表示，现在只需要一个token就可以表示了，那么在预训练的文本中电脑相关的知识可以更加专一的被提取到 <strong>电脑</strong> 这个token中（原来被分散到 电 脑 两个token），这样长期记忆会更加好。<br>同时，因为 <strong>电脑</strong> 变成了一个token，那么在推理的过程中，文本中的电脑这个<strong>单一token</strong>相关的信息因为更凝练了，也可以更好地被提取到<strong>其后token</strong>的<strong>缓存</strong>中，自然短期记忆会更好。</p>
+<p>但是，词表的扩张会面临很多的负面效果，比如：</p>
+<ol>
+<li>gpu的显存无法容纳很大的词表</li>
+<li>大量的 <strong>复合词</strong> 的使用会降低模型的推理的灵活性。（很简单的道理，如果一个复合词很长，那么语料中的文章就是单个词元，模型根本不能学习到文章内部也就是单个词元内部的关系）</li>
+<li>复合词的出现频率深受长尾效应的折磨。由很多的字节组合而成的 复合词 可能只会在语料中出现几次，不能提供足够的监督。</li>
+</ol>
+<hr>
+<h1 id="基础蓝图"><a href="#基础蓝图" class="headerlink" title="基础蓝图"></a>基础蓝图</h1><p>所以我们显然不能将复合词的信息直接扩充到原有的词表，我们将存储复合词信息的结构叫做<strong>engram表</strong>。</p>
+<p>为了解决上面的问题1，我们显然只能将engram表放到内存中。<br>为了解决上面的问题2，engram表的查询不应该替代原有的词表的作用。<br>为了解决上面的问题3，engram表中的复合词显然应该是经过压缩合并的。</p>
+<p>所以我们现在可以想象这样一种架构，复合词作为一种附加的信息储存方式，储存在内存中，在模型的中间层根据输入id进行查询为模型提供信息。</p>
+<hr>
+<h1 id="多头哈希表"><a href="#多头哈希表" class="headerlink" title="多头哈希表"></a>多头哈希表</h1><p>deepseek团队这里有一个明显的思想的跳跃，那就是选择用多头哈希表的方式来存储engram表。</p>
+<p>单个的复合词会映射出8个哈希值，而这个复合词对应的embedding则由这8个哈希值各自对应的embedding组合而成。（注意，这里的8个哈希值分别在不同的哈希桶里面索引，所以是不可能冲突的）</p>
+<p>这种设计有着一种灵活性，可以在engram表大小不变的情况下，保证高频词的embedding被更为充分的表达，同时保证低频词的embedding<strong>可以</strong>被表达。</p>
+<p>这是怎么做到的？<br>这里面有着一种朴素的模糊计算的概念，我们可以通过下面的简单例子来了解：<br>宏观来说，每一个哈希值都会因为冲突而表达n个复合词，所以任何一个哈希值索引出来的embedding显然夹杂着n个复合词的信息。<br>在训练时，高频词对于这个embedding的监督效果更强（训练次数多），所以这个embedding中高频词的信息量更大。<br>低频词的信息虽然监督效果弱，但仍然能够通过这个embedding得到部分的表示。</p>
+<p>但是，低频复合词可以通过多头哈希得到部分的表示不代表我们应该我无限制的将所有<strong>可能的</strong>复合词都加入到engram表中。<br>在论文中，deepseek团队测试了 使用二、三词元作为engram表的token 以及 使用二、三、四词元作为engram表的token 的表现对比，证明二、三词元作为engram表的token已经足够，再多就要降低表现了。</p>
+<hr>
+<h1 id="门控机制"><a href="#门控机制" class="headerlink" title="门控机制"></a>门控机制</h1><p>当然了，就像我们前面探讨的为什么将复合词作为单一token可以帮助记忆，这是因为复合词的信息不需要分散存储在组成它的n个token之中，而是可以由单个token表达。</p>
+<p>对于前述的多头哈希来说，我们也面临着复合词的信息分散在8个head中的问题。相较于一个复合词的信息分散在8个head中（假设该复合词在各个head对应的 hash值 反过来对应的可以得出该hash值的复合词中的出现频率相同），将信息有比重的倾斜向某几个head显然是更好的方法。</p>
+<p>模型在使用查询到的8个head的embedding时，利用门控机制给不同head的embedding不同的权重。<br>所以模型在训练中自己学会了将信息有倾向的分布在不同head中，并且在推理时有倾向的读取特定head的信息。（感觉可以做一个不同head的热力图展示“注意力”确实被有倾向的分配了）</p>
+<hr>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>engram表的大致思想脉络就是这样，下图是融入engram表后的模型框架图。</p>
+<p><img src="https://gitee.com/abstcol/imagebed/raw/master/20260126132556205.png"><br><em>原论文图一</em></p>
+<p>当然了，论文事无巨细的讲述了整个架构创新的全部细节，包括一些提升模型表现的小trick，以及超参搜索搜出来的engram表引入的最佳位置等等。</p>
+<p>感兴趣的读者可以去论文官方示例部署跑一下代码，简单易懂。</p>
+<hr>
+<h1 id="有效果吗？"><a href="#有效果吗？" class="headerlink" title="有效果吗？"></a>有效果吗？</h1><p>任何一篇论文的方法当然都会和benchmark对比，但是一般来说，这些对比数据并不十分说服人。</p>
+<p>但是engram这篇论文的对比实验做的非常的好。</p>
+<p>一般的论文是：我声称用了A方法达到了B效果，最终会在C指标体现。对比试验对比C指标。</p>
+<p>这篇论文是：我声称用了A方法达到了B效果，最终会在C指标体现。对比试验对比B指标以及C指标。</p>
+<p>简单来说这篇论文用额外的工具论证了engram表这个设计是通过什么<strong>路径</strong>影响了最终的benchmark指标。</p>
+<p>这是一个很困难的事情，需要实验者对于<br><strong>什么工具可以检测模型是否真的提升了B效果呢</strong><br>有着清晰的认识。<br>这对实验者的知识储备提出了很高的要求。</p>
+<p>这篇论文利用了两个工具来论证了一件事：engram表的引入减少了检索知识的层数，增加了思考推理的层数。</p>
+<p>具体的工具介绍大家可以根据论文索引学习，我就不赘述了。<br>下面是一个清晰的示意图，原论文这几行注释已经解释的很清楚了。</p>
+<p><img src="https://gitee.com/abstcol/imagebed/raw/master/20260126135819849.png"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://abstcol.github.io">abstcol</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://abstcol.github.io/2026/01/16/engram/">https://abstcol.github.io/2026/01/16/engram/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://abstcol.github.io" target="_blank">abstcol's blogs</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/DRL/">DRL</a><a class="post-meta__tags" href="/tags/LLM/">LLM</a></div><div class="post-share"><div class="social-share" data-image="/images/engram.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/01/06/asynchronous-vla/" title="VLA算法 Asynchronous Fast-Slow Vision-Language-Action Policies for Whole-Body Robotic Manipulation 论文解读"><img class="cover" src="/images/asynchronous.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">VLA算法 Asynchronous Fast-Slow Vision-Language-Action Policies for Whole-Body Robotic Manipulation 论文解读</div></div><div class="info-2"><div class="info-item-1">     前言“Asynchronous Fast-Slow Vision-Language-Action Policies for Whole-Body Robotic Manipulation”这是一篇星尘智能的技术报告，根据其自身的引言，主要的创新点在于：  快慢双系统进行了解耦。 将机器人的全身动作都进行了RVQ编码从而使vlm部分可以高效预测全身离散动作进行训练。（这是相较于pi0 fast中使用的离散化方法而言的）  实验所用到的本体是星尘智能自身的s1本体。模型的action格式用的是末端位姿+夹爪，值得一提的是旋转用的不是常见的欧拉角，而是使用了六维表示旋转（旋转矩阵的前两列）。 这里将s1本体的躯干看作了第三个末端位姿。（本体示意图如下）论文（Towards Human-level Intelligence via Human-like Whole-Body Manipulation）...</div></div></div></a><a class="pagination-related" href="/2026/02/05/xvla/" title="VLA算法 X-VLA: Soft-Prompted Transformer as Scalable Cross-Embodiment Vision-Language-Action Model 论文解读"><img class="cover" src="/images/xvla.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">VLA算法 X-VLA: Soft-Prompted Transformer as Scalable Cross-Embodiment Vision-Language-Action Model 论文解读</div></div><div class="info-2"><div class="info-item-1">     前言XVLA这篇论文主要干了两件事：  提出了 soft-prompt 这个提升模型跨本体能力的架构设计（事实上并没有给予模型直接跨本体的能力，而是给予模型可以通过一小批数据的训练跨本体的能力，这里的区别之后会讲）  训练了一个采用  soft-prompt 架构 并且 采用了一系列其他技巧训练而成的基座vla模型...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/03/14/EXIT/" title="强化学习算法 Expert Iteration (EXIT) 论文解读"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-14</div><div class="info-item-2">强化学习算法 Expert Iteration (EXIT) 论文解读</div></div><div class="info-2"><div class="info-item-1">   前言最近在尝试看automatic Theorem proving 相关的论文，发现没见过的名词有点多啊。只能是把一些技术相关的原论文拿出来仔细研究一下。其中Thinking Fast and Slow with Deep Learning and Tree...</div></div></div></a><a class="pagination-related" href="/2025/03/06/d2qn/" title="强化学习实践 openai gymnasium D2QN算法实现"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-06</div><div class="info-item-2">强化学习实践 openai gymnasium D2QN算法实现</div></div><div class="info-2"><div class="info-item-1">    我的Github实现：gym（GitHub）如果想要使用模型可以直接去GitHub仓库，注释完善且规范。觉得有用请给我点个star！ 前言使用最基础的深度强化学习技巧虽然解决了CartPole-v1 的任务：上篇博客，但是DQN的训练实在是太看脸了，每一次训练都只是有概率收敛（我觉得这很大概率是因为我的超参设置的不够好，但我实在不想再花时间调参了：）），所以我决定在解决下一个问题之前，先学习一下更好的算法，看看能不能在超参完全不变的情况下使agent的表现有一个较大的提高。如标题所见，本篇博客内容是“D2QN算法实现”，实质上从DQN到D2QN的理论创新不难理解，代码改动更是只有两行，所以本篇博客会有一定程度发散。  D2QN简介原文链接Deep Reinforcement Learning with Double...</div></div></div></a><a class="pagination-related" href="/2025/03/10/d3qn/" title="强化学习实践 openai gymnasium D3QN算法实现 + wandb sweep超参搜索"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-10</div><div class="info-item-2">强化学习实践 openai gymnasium D3QN算法实现 + wandb sweep超参搜索</div></div><div class="info-2"><div class="info-item-1">   我的Github实现：gym（GitHub）如果想要使用模型可以直接去GitHub仓库，注释完善且规范。觉得有用请给我点个star！ 前言最近将离散动作空间的DRL算法都实现了，也就是从DQN D2QN D3QN 的三个版本。实事求是的讲从D2QN到D3QN所经历的改动不是太大，就是添加了一个dueling net 的网络架构，但是网络的输出仍然是Q。所以我们只要修改Net的类定义就行了。在实现D3QN之后，我又将模型应用到了classic control 的其他场景中，大部分都表现得很好，但是面对mountain car 却怎么都无法收敛。在网上打算看一看其他人的超参怎么设的，却发现了这位仁兄的博客：链接。里面提到了通过对 reward 函数进行修改从而是模型收敛。之前从来没有试过对gymnasium的env进行reward进行修改，试了一下发现效果显著。在这之后其实应该去接着学习连续动作空间的模型的，但是打算先试一试wandb的sweep功能，做一下超参搜索玩玩，确实让我有了一些粗浅的发现。总的来说这篇博客涵盖内容比较杂，包括dueling...</div></div></div></a><a class="pagination-related" href="/2025/03/05/dqn/" title="强化学习实践 openai gymnasium CartPole-v1 DQN算法实现"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-05</div><div class="info-item-2">强化学习实践 openai gymnasium CartPole-v1 DQN算法实现</div></div><div class="info-2"><div class="info-item-1">   我的Github实现：gym（GitHub）本篇博客主要是个人实现过程的主观感受，如果想要使用模型可以直接去GitHub仓库，注释完善且规范。觉得有用请给我点个star！ 前言最近在学习强化学习，大致过了一遍强化学习的数学原理（视频）。视频讲的很好，但是实践的部分总是感觉有点匮乏（毕竟解决 grid world 方格世界（GitHub） 的问题的很难给人特别大的正反馈），所以就找到了openai gymnaisum...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%89%A9%E5%A4%A7%E8%AF%8D%E8%A1%A8"><span class="toc-number">2.</span> <span class="toc-text">扩大词表</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E8%93%9D%E5%9B%BE"><span class="toc-number">3.</span> <span class="toc-text">基础蓝图</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A4%9A%E5%A4%B4%E5%93%88%E5%B8%8C%E8%A1%A8"><span class="toc-number">4.</span> <span class="toc-text">多头哈希表</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%97%A8%E6%8E%A7%E6%9C%BA%E5%88%B6"><span class="toc-number">5.</span> <span class="toc-text">门控机制</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9C%89%E6%95%88%E6%9E%9C%E5%90%97%EF%BC%9F"><span class="toc-number">7.</span> <span class="toc-text">有效果吗？</span></a></li></ol></div></div></div></div></main><footer id="footer" style="background-image: url(/images/top_footer.jpg);"><div id="footer-wrap"><div class="copyright">&copy;2025 - 2026 By abstcol</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">follow the plan</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -2,6 +2,24 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://abstcol.github.io/2026/02/05/xvla/</loc>
+    
+    <lastmod>2026-02-09</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://abstcol.github.io/2026/01/16/engram/</loc>
+    
+    <lastmod>2026-01-26</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://abstcol.github.io/2026/01/06/asynchronous-vla/</loc>
     
     <lastmod>2026-01-16</lastmod>
@@ -166,7 +184,7 @@
 
   <url>
     <loc>https://abstcol.github.io/</loc>
-    <lastmod>2026-01-16</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -174,77 +192,84 @@
   
   <url>
     <loc>https://abstcol.github.io/tags/cv/</loc>
-    <lastmod>2026-01-16</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://abstcol.github.io/tags/deeplearning/</loc>
-    <lastmod>2026-01-16</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://abstcol.github.io/tags/diffusion-model/</loc>
-    <lastmod>2026-01-16</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://abstcol.github.io/tags/generative-model/</loc>
-    <lastmod>2026-01-16</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://abstcol.github.io/tags/DRL/</loc>
-    <lastmod>2026-01-16</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://abstcol.github.io/tags/model-based/</loc>
-    <lastmod>2026-01-16</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://abstcol.github.io/tags/theory/</loc>
-    <lastmod>2026-01-16</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://abstcol.github.io/tags/linear-algebra/</loc>
-    <lastmod>2026-01-16</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://abstcol.github.io/tags/vla/</loc>
-    <lastmod>2026-01-16</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://abstcol.github.io/tags/control/</loc>
-    <lastmod>2026-01-16</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://abstcol.github.io/tags/practice/</loc>
-    <lastmod>2026-01-16</lastmod>
+    <lastmod>2026-02-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://abstcol.github.io/tags/LLM/</loc>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -253,14 +278,14 @@
   
   <url>
     <loc>https://abstcol.github.io/categories/tech/</loc>
-    <lastmod>2026-01-16</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://abstcol.github.io/categories/math/</loc>
-    <lastmod>2026-01-16</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
